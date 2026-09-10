@@ -1,10 +1,24 @@
+# =====================================================
+# usuario.py
+# Regras de negócio relacionadas ao usuário (login)
+# =====================================================
+
 import banco
 
 
 def fazer_login(email, senha):
+    """
+    Valida os dados informados e tenta autenticar o usuário.
 
+    Retorna um dicionário no formato:
+    {
+        "sucesso": True/False,
+        "mensagem": "...",
+        "usuario": {...} ou None
+    }
+    """
 
-   
+    # Validação de campos obrigatórios
     if not email or not senha:
         return {
             "sucesso": False,

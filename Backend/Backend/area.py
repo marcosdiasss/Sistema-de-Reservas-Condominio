@@ -1,8 +1,13 @@
+# =====================================================
+# area.py
+# Regras de negócio relacionadas às áreas comuns (CRUD)
+# =====================================================
+
 import banco
 
 
 def cadastrar_area(dados):
-    
+    """Valida e cadastra uma nova área comum."""
     nome = dados.get("nome")
     descricao = dados.get("descricao", "")
     capacidade = dados.get("capacidade")
@@ -27,13 +32,13 @@ def cadastrar_area(dados):
 
 
 def consultar_areas():
-
+    """Retorna a lista de áreas comuns cadastradas."""
     areas = banco.consultar_areas()
     return {"sucesso": True, "areas": areas}
 
 
 def alternar_status_area(dados):
-    
+    """Ativa ou desativa uma área comum (nunca apaga o registro)."""
     id_area = dados.get("id_area")
 
     if not id_area:

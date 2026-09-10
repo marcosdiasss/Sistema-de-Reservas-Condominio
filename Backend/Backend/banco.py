@@ -1,11 +1,27 @@
+# =====================================================
+# banco.py
+# Camada de acesso a dados: conexão com o SQL Server +
+# funções de consulta SQL (SELECT, INSERT, UPDATE) usadas
+# pelos módulos usuario.py, morador.py, area.py e reserva.py
+#
+# As funções de consulta de cada tabela vão sendo adicionadas
+# aqui aos poucos, conforme avançamos nas etapas do CRUD.
+# =====================================================
+
 import pyodbc
 
+# Configuração de conexão com o banco de dados.
+# Este projeto usa o SQL Server LocalDB (vem com o Visual Studio).
+# Se o seu ambiente usa outra instância, troque aqui.
 SERVIDOR = "(localdb)\\MSSQLLocalDB"
 BANCO = "trabalhonp1"
 
 
 def conectar():
-
+    """
+    Abre e retorna uma conexão com o banco de dados trabalhonp1.
+    Se der erro na conexão, mostra uma mensagem clara e devolve None.
+    """
     try:
         conexao = pyodbc.connect(
             "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -22,7 +38,10 @@ def conectar():
 
 
 def testar_conexao():
- 
+    """
+    Função simples para testar se a conexão está funcionando.
+    Executa um SELECT básico e mostra o resultado no terminal.
+    """
     conexao = conectar()
 
     if conexao is None:
@@ -44,12 +63,16 @@ def testar_conexao():
         conexao.close()
 
 
-
+# =====================================================
 # CONSULTAS - USUARIO
-
+# =====================================================
 
 def buscar_usuario_login(email, senha):
-
+    """
+    Busca um usuário no banco pelo email e senha informados.
+    Retorna um dicionário com os dados do usuário (incluindo o
+    id_morador, se ele for MORADOR), ou None se não encontrar.
+    """
     conexao = conectar()
     if conexao is None:
         return None
@@ -86,11 +109,16 @@ def buscar_usuario_login(email, senha):
         conexao.close()
 
 
+# =====================================================
 # CONSULTAS - MORADOR
-
+# =====================================================
 
 def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
-    
+    """
+    Cadastra um novo morador: cria o USUARIO (login) e o MORADOR
+    (dados pessoais), ligados pelo id_usuario.
+    Retorna (True, "") em caso de sucesso, ou (False, "mensagem de erro").
+    """
     conexao = conectar()
     if conexao is None:
         return False, "Não foi possível conectar ao banco."
@@ -98,7 +126,9 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
     try:
         cursor = conexao.cursor()
 
-      
+        # 1) Cria o login (USUARIO).
+        # O OUTPUT INSERTED.id_usuario faz o próprio INSERT devolver
+        # o id que acabou de ser gerado, sem precisar de outra consulta.
         cursor.execute(
             "INSERT INTO USUARIO (email, senha, tipo_usuario, status) "
             "OUTPUT INSERTED.id_usuario "
@@ -107,6 +137,7 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
         )
         id_usuario = cursor.fetchone().id_usuario
 
+        # 2) Cria os dados pessoais (MORADOR), ligados ao usuário criado
         cursor.execute(
             "INSERT INTO MORADOR (id_usuario, nome, cpf, telefone, bloco, apartamento) "
             "VALUES (?, ?, ?, ?, ?, ?)",
@@ -117,7 +148,7 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
         return True, ""
 
     except pyodbc.IntegrityError:
- 
+        # Acontece quando o email ou o CPF já existem (restrição UNIQUE)
         conexao.rollback()
         return False, "Já existe um morador cadastrado com esse e-mail ou CPF."
 
@@ -132,7 +163,10 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
 
 
 def consultar_moradores():
- 
+    """
+    Retorna a lista de todos os moradores cadastrados, já com o
+    status do login (ATIVO/INATIVO) trazido da tabela USUARIO.
+    """
     conexao = conectar()
     if conexao is None:
         return []
@@ -171,7 +205,10 @@ def consultar_moradores():
 
 
 def alterar_morador(id_morador, nome, cpf, telefone, bloco, apartamento):
- 
+    """
+    Atualiza os dados pessoais de um morador já cadastrado.
+    Retorna (True, "") em caso de sucesso, ou (False, "mensagem de erro").
+    """
     conexao = conectar()
     if conexao is None:
         return False, "Não foi possível conectar ao banco."
@@ -200,9 +237,9 @@ def alterar_morador(id_morador, nome, cpf, telefone, bloco, apartamento):
         conexao.close()
 
 
-
+# =====================================================
 # CONSULTAS - AREA_COMUM
-
+# =====================================================
 
 def cadastrar_area(nome, descricao, capacidade):
     """
@@ -237,7 +274,7 @@ def cadastrar_area(nome, descricao, capacidade):
 
 
 def consultar_areas():
- 
+    """Retorna a lista de todas as áreas comuns cadastradas."""
     conexao = conectar()
     if conexao is None:
         return []
@@ -270,7 +307,7 @@ def consultar_areas():
 
 
 def buscar_area_por_id(id_area):
-    
+    """Busca uma única área comum pelo id. Retorna None se não achar."""
     conexao = conectar()
     if conexao is None:
         return None
@@ -298,7 +335,10 @@ def buscar_area_por_id(id_area):
 
 
 def alternar_status_area(id_area):
-    
+    """
+    Alterna o status de uma área comum: ATIVA vira INATIVA e
+    vice-versa (nunca apaga o registro, conforme regra do projeto).
+    """
     area = buscar_area_por_id(id_area)
     if area is None:
         return False, "Área não encontrada."
@@ -328,14 +368,19 @@ def alternar_status_area(id_area):
         conexao.close()
 
 
-
+# =====================================================
 # CONSULTAS - RESERVA
+# =====================================================
 
 def existe_conflito_horario(id_area, data_reserva, hora_inicio, hora_fim):
-    
+    """
+    Verifica se já existe uma reserva ATIVA para a mesma área e mesma
+    data, com horário que se sobrepõe ao informado.
+    Essa é a regra principal do sistema (RN05).
+    """
     conexao = conectar()
     if conexao is None:
-        return True 
+        return True  # por segurança, se não conseguir verificar, bloqueia
 
     try:
         cursor = conexao.cursor()
@@ -384,7 +429,12 @@ def inserir_reserva(id_morador, id_area, data_reserva, hora_inicio, hora_fim):
 
 
 def consultar_reservas(id_morador=None):
-    
+    """
+    Retorna a lista de reservas, já com o nome do morador e da área.
+    Se id_morador for informado, traz só as reservas daquele morador
+    (RN09 - morador só vê as próprias reservas).
+    Se id_morador for None, traz todas (uso do administrador - RN10).
+    """
     conexao = conectar()
     if conexao is None:
         return []
@@ -431,7 +481,10 @@ def consultar_reservas(id_morador=None):
 
 
 def cancelar_reserva(id_reserva, id_morador_solicitante, eh_administrador):
-   
+    """
+    Cancela uma reserva (muda status para CANCELADA, nunca apaga).
+    Se não for administrador, só permite cancelar a própria reserva (RN09).
+    """
     conexao = conectar()
     if conexao is None:
         return False, "Não foi possível conectar ao banco."
@@ -445,7 +498,7 @@ def cancelar_reserva(id_reserva, id_morador_solicitante, eh_administrador):
                 id_reserva
             )
         else:
-           
+            # Só cancela se a reserva pertencer ao morador que está pedindo
             cursor.execute(
                 "UPDATE RESERVA SET status = 'CANCELADA' "
                 "WHERE id_reserva = ? AND id_morador = ?",

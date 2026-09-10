@@ -1,3 +1,10 @@
+# =====================================================
+# servidor.py
+# Sobe um servidor HTTP simples (sem frameworks) usando o
+# módulo nativo http.server, e delega as requisições para
+# as funções de rotas.py
+# =====================================================
+
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -10,7 +17,11 @@ PORTA = 8000
 class ManipuladorRequisicoes(BaseHTTPRequestHandler):
 
     def do_GET(self):
-      
+        # A raiz "/" precisa de um REDIRECIONAMENTO de verdade para
+        # "/HTML/index.html" (e não só servir o conteúdo por baixo dos
+        # panos), senão os links relativos entre as páginas do Frontend
+        # (ex: "opcoes.html") quebram, porque o navegador continuaria
+        # achando que está na raiz do site.
         if self.path == "/":
             self.send_response(302)
             self.send_header("Location", "/HTML/index.html")
@@ -39,7 +50,8 @@ class ManipuladorRequisicoes(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(resposta).encode("utf-8"))
 
-    def log_message(self, forma
+    def log_message(self, formato, *args):
+        # Log simples em ASCII (evita caracteres estranhos no terminal do Windows)
         print("Requisicao:", self.address_string(), "-", formato % args)
 
 

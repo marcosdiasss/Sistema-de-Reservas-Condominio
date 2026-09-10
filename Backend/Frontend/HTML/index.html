@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Condomínio Sun Lake</title>
+    <link rel="icon" href="../IMG/logo_sunlake.png">
+    <link rel="stylesheet" href="../CSS/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body class="login-page">
+    <header class="topo topo-login">
+        <div class="topo-marca"><h1>CONDOMÍNIO SUN LAKE</h1></div>
+    </header>
+
+    <main class="login-layout">
+        <section class="login-esquerda">
+            <div class="logo-destaque">
+                <div class="logo-interativa">
+                    <img src="../IMG/logo_sunlake.png" alt="Logo Condomínio Sun Lake">
+                </div>
+            </div>
+        </section>
+
+        <section class="login-direita">
+            <div class="login-box">
+                <h2>ACESSO AO SISTEMA</h2>
+                <form id="form-login">
+                    <div class="campo">
+                        <label for="email">E-mail</label>
+                        <div class="linha-campo linha-com-icone">
+                            <i class="bi bi-person-circle icone-campo" aria-hidden="true"></i>
+                            <input type="email" id="email" placeholder="Digite seu e-mail" autocomplete="email" required>
+                        </div>
+                    </div>
+                    <div class="campo campo-senha">
+                        <label for="senha">Senha</label>
+                        <div class="linha-senha linha-com-icone">
+                            <i class="bi bi-lock-fill icone-campo icone-cadeado" aria-hidden="true"></i>
+                            <input type="password" id="senha" placeholder="Digite sua senha" autocomplete="current-password" required>
+                            <button type="button" class="olho-senha" aria-label="Mostrar senha" data-action="toggle-senha" data-target="senha"><i class="bi bi-eye-slash" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                    <p id="erro-login" class="mensagem mensagem-login" aria-live="polite"></p>
+                    <div class="login-acoes"><button type="submit">Entrar</button></div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="rodape-login">CONDOMÍNIO SUN LAKE - Gestão do seu condomínio</footer>
+
+    <script src="../JS/script.js"></script>
+</body>
+</html>

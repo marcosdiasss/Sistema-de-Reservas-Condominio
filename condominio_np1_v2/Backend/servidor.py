@@ -39,7 +39,8 @@ class ManipuladorRequisicoes(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(resposta).encode("utf-8"))
 
-    def log_message(self, forma
+    def log_message(self, formato, *args):
+    
         print("Requisicao:", self.address_string(), "-", formato % args)
 
 

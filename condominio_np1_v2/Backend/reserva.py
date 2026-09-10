@@ -4,7 +4,7 @@ import banco
 
 
 def criar_reserva(dados):
-   
+    
     id_morador = dados.get("id_morador")
     id_area = dados.get("id_area")
     data_reserva = dados.get("data_reserva")
@@ -13,6 +13,7 @@ def criar_reserva(dados):
 
     if not all([id_morador, id_area, data_reserva, hora_inicio, hora_fim]):
         return {"sucesso": False, "mensagem": "Preencha todos os campos da reserva."}
+
 
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", data_reserva):
         return {"sucesso": False, "mensagem": "Data inválida. Selecione uma data pelo calendário."}
@@ -26,27 +27,25 @@ def criar_reserva(dados):
     if hora_fim <= hora_inicio:
         return {"sucesso": False, "mensagem": "O horário final deve ser maior que o inicial."}
 
-    
-    if hora_inicio < "08:00:00" or hora_fim > "23:00:00":
-        return {"sucesso": False, "mensagem": "Reservas só podem ser feitas entre 08:00 e 23:00."}
 
-   
+    if hora_inicio < "08:00:00" or hora_fim > "22:00:00":
+        return {"sucesso": False, "mensagem": "Reservas só podem ser feitas entre 08:00 e 22:00."}
+
+  
     if data_reserva < date.today().isoformat():
         return {"sucesso": False, "mensagem": "Não é possível reservar em uma data passada."}
 
-    
     data_limite = (date.today() + timedelta(days=365)).isoformat()
     if data_reserva > data_limite:
         return {"sucesso": False, "mensagem": "Não é possível reservar com mais de 1 ano de antecedência."}
 
-    
+   
     area = banco.buscar_area_por_id(id_area)
     if area is None:
         return {"sucesso": False, "mensagem": "Área não encontrada."}
     if area["status"] != "ATIVA":
         return {"sucesso": False, "mensagem": "Esta área está inativa e não pode ser reservada."}
 
-  
     if banco.existe_conflito_horario(id_area, data_reserva, hora_inicio, hora_fim):
         return {"sucesso": False, "mensagem": "Já existe uma reserva para esta área nesse horário."}
 
@@ -58,7 +57,7 @@ def criar_reserva(dados):
 
 
 def consultar_reservas(dados):
-  
+
     eh_administrador = dados.get("eh_administrador", False)
     id_morador = dados.get("id_morador")
 
@@ -73,6 +72,7 @@ def consultar_reservas(dados):
 
 
 def cancelar_reserva(dados):
+  
     id_reserva = dados.get("id_reserva")
     id_morador = dados.get("id_morador")
     eh_administrador = dados.get("eh_administrador", False)
