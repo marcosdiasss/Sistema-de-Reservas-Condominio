@@ -1,6 +1,6 @@
 import pyodbc
 
-SERVIDOR = "(localdb)\\MSSQLLocalDB"
+SERVIDOR = "(localdb)\MSSQLLocalDB"
 BANCO = "trabalhonp1"
 
 
