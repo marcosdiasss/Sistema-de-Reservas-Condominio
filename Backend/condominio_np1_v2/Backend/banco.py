@@ -5,7 +5,7 @@ BANCO = "trabalhonp1"
 
 
 def conectar():
-
+    
     try:
         conexao = pyodbc.connect(
             "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -47,9 +47,12 @@ def testar_conexao():
 
 # CONSULTAS - USUARIO
 
-
 def buscar_usuario_login(email, senha):
-
+    """
+    Busca um usuário no banco pelo email e senha informados.
+    Retorna um dicionário com os dados do usuário (incluindo o
+    id_morador, se ele for MORADOR), ou None se não encontrar.
+    """
     conexao = conectar()
     if conexao is None:
         return None
@@ -85,12 +88,15 @@ def buscar_usuario_login(email, senha):
         cursor.close()
         conexao.close()
 
-
 # CONSULTAS - MORADOR
 
 
 def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
-    
+    """
+    Cadastra um novo morador: cria o USUARIO (login) e o MORADOR
+    (dados pessoais), ligados pelo id_usuario.
+    Retorna (True, "") em caso de sucesso, ou (False, "mensagem de erro").
+    """
     conexao = conectar()
     if conexao is None:
         return False, "Não foi possível conectar ao banco."
@@ -98,7 +104,6 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
     try:
         cursor = conexao.cursor()
 
-      
         cursor.execute(
             "INSERT INTO USUARIO (email, senha, tipo_usuario, status) "
             "OUTPUT INSERTED.id_usuario "
@@ -107,6 +112,7 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
         )
         id_usuario = cursor.fetchone().id_usuario
 
+        
         cursor.execute(
             "INSERT INTO MORADOR (id_usuario, nome, cpf, telefone, bloco, apartamento) "
             "VALUES (?, ?, ?, ?, ?, ?)",
@@ -117,7 +123,7 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
         return True, ""
 
     except pyodbc.IntegrityError:
- 
+        
         conexao.rollback()
         return False, "Já existe um morador cadastrado com esse e-mail ou CPF."
 
@@ -132,7 +138,10 @@ def cadastrar_morador(email, senha, nome, cpf, telefone, bloco, apartamento):
 
 
 def consultar_moradores():
- 
+    """
+    Retorna a lista de todos os moradores cadastrados, já com o
+    status do login (ATIVO/INATIVO) trazido da tabela USUARIO.
+    """
     conexao = conectar()
     if conexao is None:
         return []
@@ -171,7 +180,10 @@ def consultar_moradores():
 
 
 def alterar_morador(id_morador, nome, cpf, telefone, bloco, apartamento):
- 
+    """
+    Atualiza os dados pessoais de um morador já cadastrado.
+    Retorna (True, "") em caso de sucesso, ou (False, "mensagem de erro").
+    """
     conexao = conectar()
     if conexao is None:
         return False, "Não foi possível conectar ao banco."
@@ -200,9 +212,7 @@ def alterar_morador(id_morador, nome, cpf, telefone, bloco, apartamento):
         conexao.close()
 
 
-
 # CONSULTAS - AREA_COMUM
-
 
 def cadastrar_area(nome, descricao, capacidade):
     """
@@ -237,7 +247,7 @@ def cadastrar_area(nome, descricao, capacidade):
 
 
 def consultar_areas():
- 
+    """Retorna a lista de todas as áreas comuns cadastradas."""
     conexao = conectar()
     if conexao is None:
         return []
@@ -270,7 +280,7 @@ def consultar_areas():
 
 
 def buscar_area_por_id(id_area):
-    
+    """Busca uma única área comum pelo id. Retorna None se não achar."""
     conexao = conectar()
     if conexao is None:
         return None
@@ -298,7 +308,10 @@ def buscar_area_por_id(id_area):
 
 
 def alternar_status_area(id_area):
-    
+    """
+    Alterna o status de uma área comum: ATIVA vira INATIVA e
+    vice-versa (nunca apaga o registro, conforme regra do projeto).
+    """
     area = buscar_area_por_id(id_area)
     if area is None:
         return False, "Área não encontrada."
@@ -331,11 +344,16 @@ def alternar_status_area(id_area):
 
 # CONSULTAS - RESERVA
 
+
 def existe_conflito_horario(id_area, data_reserva, hora_inicio, hora_fim):
-    
+    """
+    Verifica se já existe uma reserva ATIVA para a mesma área e mesma
+    data, com horário que se sobrepõe ao informado.
+    Essa é a regra principal do sistema (RN05).
+    """
     conexao = conectar()
     if conexao is None:
-        return True 
+        return True  
 
     try:
         cursor = conexao.cursor()
@@ -384,7 +402,7 @@ def inserir_reserva(id_morador, id_area, data_reserva, hora_inicio, hora_fim):
 
 
 def consultar_reservas(id_morador=None):
-    
+   
     conexao = conectar()
     if conexao is None:
         return []
@@ -431,7 +449,7 @@ def consultar_reservas(id_morador=None):
 
 
 def cancelar_reserva(id_reserva, id_morador_solicitante, eh_administrador):
-   
+  
     conexao = conectar()
     if conexao is None:
         return False, "Não foi possível conectar ao banco."
@@ -445,7 +463,7 @@ def cancelar_reserva(id_reserva, id_morador_solicitante, eh_administrador):
                 id_reserva
             )
         else:
-           
+          
             cursor.execute(
                 "UPDATE RESERVA SET status = 'CANCELADA' "
                 "WHERE id_reserva = ? AND id_morador = ?",
@@ -470,6 +488,6 @@ def cancelar_reserva(id_reserva, id_morador_solicitante, eh_administrador):
         conexao.close()
 
 
-# Permite rodar "python banco.py" diretamente para testar a conexão
+
 if __name__ == "__main__":
     testar_conexao()

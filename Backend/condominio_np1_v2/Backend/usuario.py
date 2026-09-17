@@ -2,9 +2,8 @@ import banco
 
 
 def fazer_login(email, senha):
-
-
    
+    # Validação de campos obrigatórios
     if not email or not senha:
         return {
             "sucesso": False,

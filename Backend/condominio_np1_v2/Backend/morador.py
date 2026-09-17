@@ -1,9 +1,14 @@
+# =====================================================
+# morador.py
+# Regras de negócio relacionadas ao morador (CRUD)
+# =====================================================
+
 import banco
 import re
 
 
 def cadastrar_morador(dados):
-
+   
     email = dados.get("email")
     senha = dados.get("senha")
     nome = dados.get("nome")
@@ -12,7 +17,6 @@ def cadastrar_morador(dados):
     bloco = dados.get("bloco")
     apartamento = dados.get("apartamento")
 
-    
     if not all([email, senha, nome, cpf, telefone, bloco, apartamento]):
         return {"sucesso": False, "mensagem": "Preencha todos os campos."}
 
@@ -52,7 +56,7 @@ def consultar_moradores():
 
 
 def alterar_morador(dados):
-    
+    """Valida e atualiza os dados de um morador já cadastrado."""
     id_morador = dados.get("id_morador")
     nome = dados.get("nome")
     cpf = dados.get("cpf")
